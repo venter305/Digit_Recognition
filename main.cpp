@@ -16,6 +16,7 @@ float *testInputBuffer;
 const int APP_WIDTH = 550;
 const int APP_HEIGHT = 500;
 
+
 const int CANVAS_LEN = 28;
 
 uint8_t pixels[CANVAS_LEN*CANVAS_LEN*3];
