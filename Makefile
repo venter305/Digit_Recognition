@@ -1,7 +1,7 @@
 define IncludePaths
 GraphicsEngine
 GraphicsEngine/GUI
-Input
+GraphicsEngine/Input
 endef
 
 _OBJ=$(patsubst %.cpp,%.o,$(wildcard *.cpp)) $(foreach dir,$(IncludePaths),$(patsubst %.cpp,%.o,$(wildcard $(dir)/*.cpp)))
