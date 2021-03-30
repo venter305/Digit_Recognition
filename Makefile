@@ -12,19 +12,24 @@ INCLUDE=-I./eigen -I/usr/include/freetype2
 
 LFLAGS=-lGLEW -lglfw -lGL -lfreetype
 
-CFLAGS=-O2
+CXXFLAGS=-O2 $(LFLAGS) $(INCLUDE)
 
-nnet: MNISTDataLoader.h $(OBJ)
-	g++ $(OBJ) $(INCLUDE) $(LFLAGS) -o nnet $(CFLAGS)
+nnet: $(OBJ)
+	g++ $(OBJ) -o nnet $(CXXFLAGS)
 
-obj/%.o: %.cpp %.h
-	g++ -c $< -o $@ $(INCLUDE) $(CFLAGS)
-
-obj/%.o: %.cpp
-	g++ -c  -o $@ $< $(INCLUDE) $(CFLAGS)
 
 init:
-	mkdir -p obj $(foreach dir,$(IncludePaths),obj/$(dir))
+	mkdir -p obj obj/dep $(foreach dir,$(IncludePaths),obj/$(dir))  $(foreach dir,$(IncludePaths),obj/dep/$(dir))
 
 clean:
-	rm -f ./nnet ./obj/*.o $(foreach dir,$(IncludePaths),obj/$(dir)/*.o)
+	rm -f ./nnet ./obj/*.o ./obj/dep/*.d $(foreach dir,$(IncludePaths),obj/$(dir)/*.o) $(foreach dir,$(IncludePaths),obj/dep/$(dir)/*.d)
+
+./obj/dep/%.d: %.cpp
+	@rm -f $@
+	@g++ -MM $< $(CXXFLAGS) > $@.tmp
+	@sed 's,\($(@F:.d=.o)\)[ :]*,$(patsubst obj/dep/%.d,./obj/%.o,$@) :,g' < $@.tmp > $@
+	@sed -i '$$a \\tg++ -c $< -o $(patsubst obj/dep/%.d,./obj/%.o,$@) $(CXXFLAGS)' $@
+	@rm -f $@.tmp
+
+
+-include $(patsubst %,./obj/dep/%,$(_OBJ:.o=.d))

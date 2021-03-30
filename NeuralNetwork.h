@@ -20,11 +20,26 @@ private:
   int numOutputs;
 
 public:
+  float learningRate = 0.5f;
+  int batchSize = 10;
+  float lambdaVal = 5.0f;
+
   NeuralNetwork(int numIn,int numHid,int numOut);
 
   void CalculateOutputs(float* input, float* nnOut = nullptr);
-  void Train(int totalIterations, int batchSize, int numData,float*&nnIn, float* &answers, float learningRate,bool test=false);
+  void Train(int totalIterations, int batchSize, int numData,float*&nnIn, float* &answers, float learningRate, float lambda,bool test=false);
   float CalculateAccuracy(int numTestData,float* inputs, float* answers);
+
+  int GetNumInputs(){return numInputs;}
+  int GetNumHidden(){return numHidden;}
+  int GetNumOutputs(){return numOutputs;}
+
+  double* GetHidden(){return hidden.data();}
+
+private:
   float Activation(float num);
-  float CostDerivative(float output_activation, float target);
+  float ActivationDerivative(float num);
+
+  float Softmax(float num, Eigen::VectorXd &weightSumMatrix);
+  float CostDerivative(float output_activation, float target, float weightedSum);
 };

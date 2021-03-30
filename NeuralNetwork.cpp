@@ -1,4 +1,7 @@
 #include <iostream>
+#include <iomanip>
+#include <random>
+#include <time.h>
 #include "NeuralNetwork.h"
 
 NeuralNetwork::NeuralNetwork(int numIn,int numHid,int numOut){
@@ -6,30 +9,29 @@ NeuralNetwork::NeuralNetwork(int numIn,int numHid,int numOut){
   numHidden = numHid;
   numOutputs = numOut;
 
+  std::default_random_engine generator(time(NULL));
+  std::normal_distribution<double> randomNum(0,1.0f/std::sqrt(numInputs));
+
   weights_ih.resize(numHidden,numInputs);
   for (int i=0;i<numHidden;i++){
     for (int j=0;j<numInputs;j++)
-      //weights_ih(i,j) = 1.0f;
-      weights_ih(i,j) = ((float)rand()/(float)RAND_MAX)*2-1;
+      weights_ih(i,j) = randomNum(generator);
   }
 
   weights_ho.resize(numOutputs,numHidden);
   for (int i=0;i<numOutputs;i++){
     for (int j=0;j<numHidden;j++){
-      //weights_ho(i,j) = 1.0f;
-      weights_ho(i,j) = ((float)rand()/(float)RAND_MAX)*2-1;
+      weights_ho(i,j) = randomNum(generator);
     }
   }
 
   bias_h.resize(numHidden);
   for (int i=0;i<numHidden;i++)
-    //bias_h(i) = 1.0f;
-    bias_h(i) = ((float)rand()/(float)RAND_MAX)*2-1;
+    bias_h(i) = randomNum(generator);
 
   bias_o.resize(numOutputs);
   for (int i=0;i<numOutputs;i++)
-    //bias_o(i) = 1.0f;
-    bias_o(i) = ((float)rand()/(float)RAND_MAX)*2-1;
+    bias_o(i) = randomNum(generator);
 
   inputs.resize(numInputs);
   hidden.resize(numHidden);
@@ -45,24 +47,25 @@ void NeuralNetwork::CalculateOutputs(float* input, float* nnOut){
 
   //Calculate Hidden Layer
 
+  Eigen::VectorXd weightSumMatrix_H = weights_ih*inputs+bias_h;
   for (int i=0;i<numHidden;i++){
-    auto weightSumMatrix = weights_ih*inputs+bias_h;
-    float weightedSum = weightSumMatrix(i,0);
+    float weightedSum = weightSumMatrix_H(i);
     hidden(i) = Activation(weightedSum);
   }
+
   //Calculate Output Layer
 
+  Eigen::VectorXd weightSumMatrix_O = weights_ho*hidden+bias_o;
   for (int i=0;i<numOutputs;i++){
-    auto weightSumMatrix = weights_ho*hidden+bias_o;
-    float weightedSum = weightSumMatrix(i,0);
-    outputs(i) = Activation(weightedSum);
+    float weightedSum = weightSumMatrix_O(i);
+    outputs(i) = Softmax(weightedSum,weightSumMatrix_O);
     if(nnOut != nullptr)
       nnOut[i] = outputs(i);
   }
 
 }
 
-void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float* &nnIn, float* &answers, float learningRate,bool test){
+void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float* &nnIn, float* &answers, float learningRate, float lambda,bool test){
   for (int itCount=0;itCount<totalIterations;itCount++){
 
     Eigen::MatrixXd batchWeights_ih(numHidden,numInputs);
@@ -79,10 +82,10 @@ void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float*
 
     for (int currBatch=0;currBatch < numBatches;currBatch++){
 
-      batchWeights_ih *= 0;
-      batchWeights_ho *= 0;
-      batchBias_h *= 0;
-      batchBias_o *= 0;
+      batchWeights_ih.setZero();
+      batchWeights_ho.setZero();
+      batchBias_h.setZero();
+      batchBias_o.setZero();
 
       for (int bCount=0;bCount<batchSize;bCount++){
         std::cout << '\r' << "Epoch: " << itCount << " Current Batch: " << currBatch << " Batch Count: " << bCount << std::flush;
@@ -90,7 +93,7 @@ void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float*
 
         int index = indexArray[currBatch*batchSize+bCount];
 
-        CalculateOutputs(nnIn+index*numInputs);
+        CalculateOutputs(&nnIn[index*numInputs]);
 
         //Error for Last Layer
 
@@ -98,9 +101,9 @@ void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float*
         Eigen::VectorXf costGradient_o(numOutputs);
         //Error Value
         Eigen::VectorXd outputError(numOutputs);
+        Eigen::VectorXd weightSumMatrix_O = weights_ho*hidden+bias_o;
         for (int j=0;j<numOutputs;j++){
-          costGradient_o(j) = CostDerivative(outputs(j),answers[index*numOutputs+j]);
-          outputError(j) =   costGradient_o(j) * (outputs(j)*(1-outputs(j)));
+          outputError(j) = CostDerivative(outputs(j),answers[index*numOutputs+j],weightSumMatrix_O(j));// * ActivationDerivative(weightSumMatrix_O(j));
         }
 
 
@@ -111,8 +114,9 @@ void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float*
 
         //hiddenError = previousError.cwiseProduct(hidden.cwiseProduct(Eigen::VectorXd::Ones(numHidden)-hidden));
 
+        Eigen::VectorXd weightSumMatrix_H = weights_ih*inputs+bias_h;
         for (int j=0;j<numHidden;j++){
-          hiddenError(j) = previousError(j) * (hidden(j)*(1-hidden(j)));
+          hiddenError(j) = previousError(j) * ActivationDerivative(weightSumMatrix_H(j));
         }
 
         batchWeights_ho += (outputError * hidden.transpose());
@@ -124,16 +128,17 @@ void NeuralNetwork::Train(int totalIterations, int batchSize, int numData,float*
 
       }
 
-      weights_ho -= learningRate/batchSize * batchWeights_ho;
+      weights_ho = (1-(learningRate*lambda)/numData)*weights_ho - learningRate/batchSize * batchWeights_ho;
 
-      weights_ih -= learningRate/batchSize * batchWeights_ih;
+      weights_ih = (1-(learningRate*lambda)/numData)*weights_ih - learningRate/batchSize * batchWeights_ih;
 
       bias_h -= learningRate/batchSize * batchBias_h;
       bias_o -= learningRate/batchSize * batchBias_o;
 
     }
 
-    if (test)std::cout << " Accuracy: " << CalculateAccuracy(100,nnIn,answers) << '%' << std::endl;
+    if (test)std::cout << " Accuracy: " << CalculateAccuracy(100,nnIn,answers)*100 << '%';
+    std::cout << std::endl;
 
     delete[] indexArray;
     // delete[] inputArray;
@@ -167,12 +172,34 @@ float NeuralNetwork::CalculateAccuracy(int numTestData,float* inputs, float* ans
     return (float)sum/(float)numTestData;
 }
 
+//Sigmoid Function
 float NeuralNetwork::Activation(float num){
 
   float sum = 1.0f/(1.0f+std::exp(num*-1));
   return sum;
 }
 
-float NeuralNetwork::CostDerivative(float output_activation, float target){
-  return output_activation-target;
+float NeuralNetwork::ActivationDerivative(float num){
+  return Activation(num) * (1-Activation(num));
+}
+
+float NeuralNetwork::Softmax(float num, Eigen::VectorXd &weightSumMatrix){
+  float sum = 0;
+  for (int i = 0;i<numOutputs;i++)
+    sum += std::exp(weightSumMatrix(i));
+
+  float out = std::exp(num)/sum;
+  return out;
+}
+
+//Quadratic Cost
+//1/2*(target-output)^2
+// float NeuralNetwork::CostDerivative(float output_activation, float target, float weightedSum){
+//   return (output_activation-target) * ActivationDerivative(weightedSum);
+// }
+
+//Cross-Entropy Cost
+//sum(-target*ln(a)-(1-y)*ln(1-a))
+float NeuralNetwork::CostDerivative(float output_activation, float target, float weightedSum){
+  return (output_activation-target);
 }
