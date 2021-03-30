@@ -1,3 +1,17 @@
+extern const int APP_WIDTH;
+extern const int APP_HEIGHT;
+extern const int CANVAS_LEN;
+extern uint8_t pixels[];
+
+extern NeuralNetwork* nn;
+
+
+void UpdateStats();
+void Train(Button *btn);
+void RandomizeImage(Button *btn);
+void GuessUserInput(Button *btn);
+
+
 void GUIInit(){
   glClearColor(0.8f,0.8f,0.8f,1.0f);
 
