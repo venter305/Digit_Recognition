@@ -1,6 +1,7 @@
 define IncludePaths
 GraphicsEngine
 GraphicsEngine/GUI
+GraphicsEngine/GUI/Layout
 GraphicsEngine/Input
 endef
 
@@ -31,5 +32,8 @@ clean:
 	@sed -i '$$a \\tg++ -c $< -o $(patsubst obj/dep/%.d,./obj/%.o,$@) $(CXXFLAGS)' $@
 	@rm -f $@.tmp
 
-
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),init)
 -include $(patsubst %,./obj/dep/%,$(_OBJ:.o=.d))
+endif
+endif
