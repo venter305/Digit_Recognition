@@ -10,7 +10,8 @@ NeuralNetwork::NeuralNetwork(int numIn,int numHid,int numOut){
   numOutputs = numOut;
 
   std::default_random_engine generator(time(NULL));
-  std::normal_distribution<double> randomNum(0,1.0f/std::sqrt(numInputs));
+  std::uniform_real_distribution<double> randomNum(-1,1);
+
 
   weights_ih.resize(numHidden,numInputs);
   for (int i=0;i<numHidden;i++){

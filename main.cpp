@@ -31,20 +31,20 @@ class MainWindow : public Window{
     void InitGUI(){
       //Panels
       std::shared_ptr<Panel> image = std::make_shared<Panel>(10,APP_HEIGHT-150,140,140);
-      image->flipY();
+      image->FlipY();
       image->CreateTexture(28,28,GL_RGB,GL_UNSIGNED_BYTE,nullptr);
-      guiMan.addElement(image,100);
+      guiMan.AddElement(image,100);
 
       std::shared_ptr<Panel> canvas = std::make_shared<Panel>(10,APP_HEIGHT-400,CANVAS_LEN,CANVAS_LEN);
       for (int i=0;i<CANVAS_LEN*CANVAS_LEN*3;i++)
         pixels[i] = 0;
       canvas->CreateTexture(CANVAS_LEN,CANVAS_LEN,GL_RGB,GL_UNSIGNED_BYTE,pixels);
-      guiMan.addElement(canvas,400);
+      guiMan.AddElement(canvas,400);
 
       std::shared_ptr<Panel> nnInCanvas = std::make_shared<Panel>(360,APP_HEIGHT-450,28*2,28*2);
       nnInCanvas->CreateTexture(28,28,GL_RGB,GL_UNSIGNED_BYTE,pixels);
-      nnInCanvas->flipY();
-      guiMan.addElement(nnInCanvas,401);
+      nnInCanvas->FlipY();
+      guiMan.AddElement(nnInCanvas,401);
 
       int width = std::ceil(std::sqrt(nn->GetNumHidden()));
       int height = std::round(std::sqrt(nn->GetNumHidden()));
@@ -59,29 +59,29 @@ class MainWindow : public Window{
 
       std::shared_ptr<Panel> nnHidden = std::make_shared<Panel>(525,APP_HEIGHT-450,28*2,28*2);
       nnHidden->CreateTexture(width,height,GL_RGB,GL_UNSIGNED_BYTE,hidPixels);
-      nnHidden->flipY();
-      guiMan.addElement(nnHidden,402);
+      nnHidden->FlipY();
+      guiMan.AddElement(nnHidden,402);
 
       // //Text
       const char* fontPath = "./GraphicsEngine/freefont/FreeSerif.otf";
-      guiMan.addElement(std::make_shared<Text>(160,APP_HEIGHT-50,20,"Label: ",nullptr,fontPath),200);
-      guiMan.addElement(std::make_shared<Text>(10,APP_HEIGHT-200,30,"Guess: ",nullptr,fontPath),201);
-      guiMan.addElement(std::make_shared<Text>(10,APP_HEIGHT-450,30,"Guess: ",nullptr,fontPath),202);
+      guiMan.AddElement(std::make_shared<Text>(160,APP_HEIGHT-50,20,"Label: ",nullptr,fontPath),200);
+      guiMan.AddElement(std::make_shared<Text>(10,APP_HEIGHT-200,30,"Guess: ",nullptr,fontPath),201);
+      guiMan.AddElement(std::make_shared<Text>(10,APP_HEIGHT-450,30,"Guess: ",nullptr,fontPath),202);
       std::shared_ptr<Text> statsText = std::make_shared<Text>(350,APP_HEIGHT-50,20,"Neural Network: ",nullptr,fontPath);
       statsText->SetNewLineSpacing(2);
-      guiMan.addElement(statsText,203);
+      guiMan.AddElement(statsText,203);
       UpdateStats();
       //
-      guiMan.addElement(std::make_shared<Text>(300,APP_HEIGHT-425,15,"Input: ",nullptr,fontPath),204);
-      guiMan.addElement(std::make_shared<Text>(450,APP_HEIGHT-425,15,"Hidden: ",nullptr,fontPath),205);
+      guiMan.AddElement(std::make_shared<Text>(300,APP_HEIGHT-425,15,"Input: ",nullptr,fontPath),204);
+      guiMan.AddElement(std::make_shared<Text>(450,APP_HEIGHT-425,15,"Hidden: ",nullptr,fontPath),205);
       //
       //Text Input Fields
-      const char* numHid = std::to_string(nn->GetNumHidden()).c_str();
 
+	  
       float disabledColor[3] = {0.9f,0.9f,0.9f};
       float enabledColor[3] = {1,1,1};
-
-      std::shared_ptr<TextInput> numInTxtInput = std::make_shared<TextInput>(620,APP_HEIGHT-165,100,25,numHid,[&](TextInput *txtInput){
+	  
+      std::shared_ptr<TextInput> numInTxtInput = std::make_shared<TextInput>(620,APP_HEIGHT-165,100,25,std::to_string(nn->GetNumHidden()),[&](TextInput *txtInput){
         std::string text = txtInput->GetText();
         int numHid = std::stoi(text);
         if (numHid != nn->GetNumHidden()){
@@ -90,11 +90,11 @@ class MainWindow : public Window{
         }
         UpdateStats();
       });
-      numInTxtInput->setTextAlignment(TextInput::Left);
+      numInTxtInput->SetTextAlignment(TextInput::Left);
       numInTxtInput->SetTextMargins(5,-1);
-      numInTxtInput->setTextSize(20);
-      numInTxtInput->setStateColors(enabledColor,disabledColor);
-      guiMan.addElement(numInTxtInput,500);
+      numInTxtInput->SetTextSize(20);
+      numInTxtInput->SetStateColors(enabledColor,disabledColor);
+      guiMan.AddElement(numInTxtInput,500);
 
       std::string lRateStr = std::to_string(nn->learningRate);
       lRateStr = lRateStr.substr(0,lRateStr.find(".")+3);
@@ -103,11 +103,11 @@ class MainWindow : public Window{
         std::string text = txtInput->GetText();
         nn->learningRate = std::stof(text);
       });
-      learnRateTxtInput->setTextAlignment(TextInput::Left);
+      learnRateTxtInput->SetTextAlignment(TextInput::Left);
       learnRateTxtInput->SetTextMargins(5,-1);
-      learnRateTxtInput->setTextSize(20);
-      learnRateTxtInput->setStateColors(enabledColor,disabledColor);
-      guiMan.addElement(learnRateTxtInput,501);
+      learnRateTxtInput->SetTextSize(20);
+      learnRateTxtInput->SetStateColors(enabledColor,disabledColor);
+      guiMan.AddElement(learnRateTxtInput,501);
 
       std::string bSizeStr = std::to_string(nn->batchSize);
 
@@ -115,39 +115,39 @@ class MainWindow : public Window{
         std::string text = txtInput->GetText();
         nn->batchSize = std::stof(text);
       });
-      bSizeTxtInput->setTextAlignment(TextInput::Left);
+      bSizeTxtInput->SetTextAlignment(TextInput::Left);
       bSizeTxtInput->SetTextMargins(5,-1);
-      bSizeTxtInput->setTextSize(20);
-      bSizeTxtInput->setStateColors(enabledColor,disabledColor);
-      guiMan.addElement(bSizeTxtInput,502);
+      bSizeTxtInput->SetTextSize(20);
+      bSizeTxtInput->SetStateColors(enabledColor,disabledColor);
+      guiMan.AddElement(bSizeTxtInput,502);
 
       //Buttons
       std::shared_ptr<Button> randomize = std::make_shared<Button>(160,APP_HEIGHT-100,120,25,[&](Button *btn){
         RandomizeImage();
       });
-      randomize->setText("Randomize Image");
-      guiMan.addElement(randomize,300);
+      randomize->SetText("Randomize Image");
+      guiMan.AddElement(randomize,300);
 
       std::shared_ptr<Button> clear = std::make_shared<Button>(160,APP_HEIGHT-375,50,25,[&](Button *btn){
         for (int i=0;i<CANVAS_LEN*CANVAS_LEN*3;i++)
           pixels[i] = 0;
-        auto canvasPanel = std::static_pointer_cast<Panel>(guiMan.elements[400]);
+		auto canvasPanel = guiMan.GetElement<Panel>(400);
         canvasPanel->UpdateTexture(0,0,CANVAS_LEN,CANVAS_LEN,GL_RGB,GL_UNSIGNED_BYTE,pixels);
       });
-      clear->setText("Clear");
-      guiMan.addElement(clear,301);
+      clear->SetText("Clear");
+      guiMan.AddElement(clear,301);
 
       std::shared_ptr<Button> guessBtn = std::make_shared<Button>(160,APP_HEIGHT-315,50,25,[&](Button *btn){
         GuessUserInput();
       });
-      guessBtn->setText("Guess");
-      guiMan.addElement(guessBtn,302);
+      guessBtn->SetText("Guess");
+      guiMan.AddElement(guessBtn,302);
 
       std::shared_ptr<Button> train = std::make_shared<Button>(350,APP_HEIGHT-350,50,25,[&](Button *btn){
         Train();
       });
-      train->setText("Train");
-      guiMan.addElement(train,303);
+      train->SetText("Train");
+      guiMan.AddElement(train,303);
 
       std::shared_ptr<Button> reset = std::make_shared<Button>(425,APP_HEIGHT-350,50,25,[&](Button* btn){
         int numHidden = nn->GetNumHidden();
@@ -155,8 +155,8 @@ class MainWindow : public Window{
         nn = new NeuralNetwork(28*28,numHidden,10);
         UpdateStats();
       });
-      reset->setText("Reset");
-      guiMan.addElement(reset,304);
+      reset->SetText("Reset");
+      guiMan.AddElement(reset,304);
     }
 
     void OnStartup() {
@@ -194,7 +194,7 @@ class MainWindow : public Window{
     void OnUpdate(double dTime) {
       glClear(GL_COLOR_BUFFER_BIT);
 
-      guiMan.drawElements();
+      guiMan.DrawElements();
     }
 
     void OnShutdown() {
@@ -212,22 +212,22 @@ class MainWindow : public Window{
     		{
     			MouseButtonEvent::ButtonType btnType = static_cast<MouseButtonEvent*>(&ev)->GetButtonType();
     			MouseButtonEvent::ButtonState btnState = static_cast<MouseButtonEvent*>(&ev)->GetButtonState();
-    		  double mouseX = static_cast<MouseButtonEvent*>(&ev)->GetMouseX();
+    		 	double mouseX = static_cast<MouseButtonEvent*>(&ev)->GetMouseX();
     			double mouseY = static_cast<MouseButtonEvent*>(&ev)->GetMouseY();
     			if(btnType == MouseButtonEvent::ButtonType::Left && btnState == MouseButtonEvent::ButtonState::Pressed){
-            mouseDown = true;
-            CanvasDraw(mouseX,mouseY);
+           			 mouseDown = true;
+            		CanvasDraw(mouseX,mouseY);
     			}
-          if(btnType == MouseButtonEvent::ButtonType::Left && btnState == MouseButtonEvent::ButtonState::Released){
-            mouseDown = false;
-          }
+          		if(btnType == MouseButtonEvent::ButtonType::Left && btnState == MouseButtonEvent::ButtonState::Released){
+            		mouseDown = false;
+          		}	
     			break;
     		}
         case Event::MouseCursor:
           {
             double mouseX = static_cast<MouseMoveEvent*>(&ev)->GetMouseX();
             double mouseY = static_cast<MouseMoveEvent*>(&ev)->GetMouseY();
-            mouseY = APP_HEIGHT-mouseY;
+            //mouseY = APP_HEIGHT-mouseY;
 
             CanvasDraw(mouseX,mouseY);
 
@@ -260,11 +260,11 @@ class MainWindow : public Window{
       int imageIndex = offset*testImages.numRows*testImages.numCols;
       int guessNum = GuessNumber(testInputBuffer,offset);
       auto guessText = guiMan.GetElement<Text>(201);
-      guessText->setText("Guess: "+std::to_string(guessNum));
-      auto labelText = std::static_pointer_cast<Text>(guiMan.elements[200]);
-      labelText->setText("Label:"+std::to_string(testLabels.buffer[offset]));
+      guessText->SetText("Guess: "+std::to_string(guessNum));
+	  auto labelText = guiMan.GetElement<Text>(200);
+      labelText->SetText("Label:"+std::to_string(testLabels.buffer[offset]));
 
-      auto imagePanel = std::static_pointer_cast<Panel>(guiMan.elements[100]);
+	  auto imagePanel = guiMan.GetElement<Panel>(100);
       uint8_t imagePixels[testImages.numRows*testImages.numCols*3];
       for (int y=0;y<testImages.numRows;y++)
       for (int x=0;x<testImages.numCols;x++){
@@ -284,8 +284,8 @@ class MainWindow : public Window{
       "\tLearning Rate: \n"
       "\tBatch Size: \n"
       "\tAccuracy: " + std::to_string(nn->CalculateAccuracy(testImages.numImages,testInputBuffer,testTargetBuffer)*100) + "%";
-      auto statsText = std::static_pointer_cast<Text>(guiMan.elements[203]);
-      statsText->setText(statsString);
+	  auto statsText = guiMan.GetElement<Text>(203);
+      statsText->SetText(statsString);
 
       int width = std::ceil(std::sqrt(nn->GetNumHidden()));
       int height = std::round(std::sqrt(nn->GetNumHidden()));
@@ -298,7 +298,7 @@ class MainWindow : public Window{
         hidPixels[i*3+2] = value;
       }
 
-      auto nnHidPanel = std::static_pointer_cast<Panel>(guiMan.elements[402]);
+	  auto nnHidPanel = guiMan.GetElement<Panel>(402);
       nnHidPanel->CreateTexture(width,height,GL_RGB,GL_UNSIGNED_BYTE,hidPixels);
     }
 
@@ -336,7 +336,7 @@ class MainWindow : public Window{
 
       CenterImage(input);
 
-      auto nnCanvasPanel = std::static_pointer_cast<Panel>(guiMan.elements[401]);
+	  auto nnCanvasPanel = guiMan.GetElement<Panel>(401);
       uint8_t nnCanvasInput[28*28*3];
 
       for(int y=0;y<28;y++)
@@ -349,10 +349,10 @@ class MainWindow : public Window{
       nnCanvasPanel->UpdateTexture(0,0,28,28,GL_RGB,GL_UNSIGNED_BYTE,nnCanvasInput);
 
       int guess = GuessNumber(input);
-      auto canvasGuess = std::static_pointer_cast<Text>(guiMan.elements[202]);
-      canvasGuess->setText("Guess: "+std::to_string(guess));
+	  auto canvasGuess = guiMan.GetElement<Text>(202);
+      canvasGuess->SetText("Guess: "+std::to_string(guess));
 
-      auto nnHidPanel = std::static_pointer_cast<Panel>(guiMan.elements[402]);
+	  auto nnHidPanel = guiMan.GetElement<Panel>(402);
       int width = std::ceil(std::sqrt(nn->GetNumHidden()));
       int height = std::round(std::sqrt(nn->GetNumHidden()));
       uint8_t hidPixels[width*height*3];
@@ -370,8 +370,8 @@ class MainWindow : public Window{
     bool mouseDown = false;
 
     void CanvasDraw(int mouseX, int mouseY){
-      auto canvasPanel = std::static_pointer_cast<Panel>(guiMan.elements[400]);
-      if (canvasPanel->checkBoundingBox(mouseX,mouseY) && mouseDown){
+	  auto canvasPanel = guiMan.GetElement<Panel>(400);
+      if (canvasPanel->CheckBoundingBox(mouseX,mouseY) && mouseDown){
         int leftEdge = canvasPanel->xPos;
         //int rightEdge = canvasPanel->width+canvasPanel->xPos;
         int bottomEdge = canvasPanel->yPos;
@@ -380,7 +380,7 @@ class MainWindow : public Window{
         int mouseCanvasX = (int)(mouseX-leftEdge)/(canvasPanel->width/CANVAS_LEN);
         int mouseCanvasY = (int)(mouseY-bottomEdge)/(canvasPanel->height/CANVAS_LEN);
 
-        int lineWidth = 15;
+        int lineWidth = 10;
 
         for (int k=lineWidth/-2;k<=lineWidth/2;k++){
           double xWidth = std::sqrt(pow(0.5,2)-pow((double)k/lineWidth,2))*(lineWidth);
